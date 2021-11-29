@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+  repository: ""
+  pullPolicy: IfNotPresent
+  tag: ""
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+
+webex:
+  webex_token: ""
+  webex_room: ""
