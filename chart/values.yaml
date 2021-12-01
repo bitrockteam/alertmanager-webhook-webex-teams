@@ -20,3 +20,5 @@ securityContext: {}
 webex:
   webex_token: ""
   webex_room: ""
+
+loglevel: info

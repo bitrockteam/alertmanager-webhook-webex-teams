@@ -29,6 +29,8 @@ spec:
         ports:
           - containerPort: 9091
         env:
+        - name: LOGLEVEL
+          value: {{ .Values.loglevel }}
         - name: PYTHONUNBUFFERED
           value: "1"
         - name: APP
