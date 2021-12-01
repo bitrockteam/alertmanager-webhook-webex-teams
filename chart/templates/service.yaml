@@ -1,0 +1,12 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: webex-receiver
+spec:
+  selector:
+    app: webex-receiver
+  ports:
+    - port: 9091
+      targetPort: 9091
+
