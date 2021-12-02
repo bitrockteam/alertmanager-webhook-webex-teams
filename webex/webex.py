@@ -15,6 +15,10 @@ formatter = jsonlogger.JsonFormatter(
 
 app = Flask(__name__)
 
+@app.route('/health', methods=['GET'])
+def health():
+    return "OK", 200
+
 @app.route('/alertmanager', methods=['POST'])
 def alertmanager():
     try:
@@ -22,7 +26,8 @@ def alertmanager():
             post_data = json.loads(request.data)
             alert_data(post_data)
     except Exception as e:
-        print("Storing alerts failed in main: %s", e)
+        app.logger.error("Storing alerts failed in main: %s", e)
+        app.logger.exception(e)
         return {"ERROR"}, 500
 
     return "NOK", 200
