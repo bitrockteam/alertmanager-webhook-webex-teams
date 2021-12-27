@@ -18,7 +18,7 @@ podSecurityContext: {}
 securityContext: {}
 
 webex:
-  webex_token: ""
-  webex_room: ""
+  token: ""
+  room: ""
 
 loglevel: info
