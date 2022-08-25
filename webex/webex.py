@@ -5,7 +5,6 @@ from werkzeug.exceptions import HTTPException
 from pythonjsonlogger import jsonlogger
 import pycurl
 import json
-from elasticapm.contrib.flask import ElasticAPM
 
 webex_token = environ.get('WEBEX_TOKEN')
 webex_room = environ.get('WEBEX_ROOM')
@@ -15,11 +14,6 @@ formatter = jsonlogger.JsonFormatter(
 
 
 app = Flask(__name__)
-app.config['ELASTIC_APM'] = {
-    'SERVICE_NAME': 'webex-receiver',
-    'SECRET_TOKEN': 'changeme',
-}
-apm = ElasticAPM(app)
 @app.route('/health', methods=['GET'])
 def health():
     return "OK", 200
@@ -50,6 +44,11 @@ def alert_data(data):
                 end = "end: "
                 labels = ""
                 annotations = ""
+                local_webex_room = ""
+                if "webex_room" in i["labels"]:
+                    local_webex_room = i["labels"]["webex_room"]
+                else:
+                    local_webex_room = webex_room
                 if "alertname" in i["labels"]:
                     alertname = alertname + i["labels"]["alertname"]
                 if "severity" in i["labels"]:
@@ -66,7 +65,7 @@ def alert_data(data):
                     annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
                 alert = cluster + "\n" + alertname + "\n" + severity + "\n" + labels + "\n" + annotations + "\n" + start + "\n" + end
                 app.logger.debug(alert)
-                webex = [("roomId", webex_room), ("markdown", str(alert))]
+                webex = [("roomId", local_webex_room), ("markdown", str(alert))]
                 headers = ['Authorization: Bearer ' + webex_token ]
                 buffer = BytesIO()
                 crl = pycurl.Curl()
