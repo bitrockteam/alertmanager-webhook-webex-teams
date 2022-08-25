@@ -5,7 +5,6 @@ from werkzeug.exceptions import HTTPException
 from pythonjsonlogger import jsonlogger
 import pycurl
 import json
-from elasticapm.contrib.flask import ElasticAPM
 
 webex_token = environ.get('WEBEX_TOKEN')
 webex_room = environ.get('WEBEX_ROOM')
@@ -15,11 +14,6 @@ formatter = jsonlogger.JsonFormatter(
 
 
 app = Flask(__name__)
-app.config['ELASTIC_APM'] = {
-    'SERVICE_NAME': 'webex-receiver',
-    'SECRET_TOKEN': 'changeme',
-}
-apm = ElasticAPM(app)
 @app.route('/health', methods=['GET'])
 def health():
     return "OK", 200
