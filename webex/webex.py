@@ -47,6 +47,7 @@ def alert_data(data):
                 local_webex_room = ""
                 if "webex_room" in i["labels"]:
                     local_webex_room = i["labels"]["webex_room"]
+                    del i["labels"]["webex_room"]
                 else:
                     local_webex_room = webex_room
                 if "alertname" in i["labels"]:
