@@ -7,7 +7,7 @@ import pycurl
 import json
 
 webex_token = environ.get('WEBEX_TOKEN')
-webex_room = environ.get('WEBEX_ROOM')
+webex_room = environ.get("WEBEX_ROOM_" + environ.get('DEFAULT_WEBEX_ROOM').upper())
 loglevel = environ.get('LOGLEVEL','INFO')
 formatter = jsonlogger.JsonFormatter(
     '%(asctime) %(levelname) %(module) %(funcName) %(lineno) %(message)')
