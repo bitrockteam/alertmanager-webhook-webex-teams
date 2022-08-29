@@ -55,5 +55,5 @@ affinity: {}
 loglevel: INFO
 
 webex:
-  token: ""
-  room: ""
+  token: "default_token"
+  default_room: "default_room"
