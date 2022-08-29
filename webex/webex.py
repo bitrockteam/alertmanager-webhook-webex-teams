@@ -66,6 +66,7 @@ def alert_data(data):
                     annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
                 alert = cluster + "\n" + alertname + "\n" + severity + "\n" + labels + "\n" + annotations + "\n" + start + "\n" + end
                 app.logger.debug(alert)
+                app.logger.debug("Sending to roomId: '"+local_webex_room+"'")
                 webex = [("roomId", local_webex_room), ("markdown", str(alert))]
                 headers = ['Authorization: Bearer ' + webex_token ]
                 buffer = BytesIO()
