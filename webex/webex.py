@@ -46,7 +46,7 @@ def alert_data(data):
                 annotations = ""
                 local_webex_room = None
                 if "webex_room" in i["labels"]:
-                    local_webex_room = environ.get(i["labels"]["webex_room"])
+                    local_webex_room = environ.get("WEBEX_ROOM_" + i["labels"]["webex_room"].upper())
                     del i["labels"]["webex_room"]
                 if local_webex_room == None:
                     local_webex_room = webex_room

@@ -2,5 +2,5 @@ apiVersion: v2
 name: webex-receiver
 description: A Helm chart for alertmanager to webex teams receiver
 type: application
-version: 0.6.5
-appVersion: "0.3.3"
+version: 0.6.6
+appVersion: "0.3.4"
