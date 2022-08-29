@@ -44,11 +44,11 @@ def alert_data(data):
                 end = "end: "
                 labels = ""
                 annotations = ""
-                local_webex_room = ""
+                local_webex_room = None
                 if "webex_room" in i["labels"]:
-                    local_webex_room = i["labels"]["webex_room"]
+                    local_webex_room = environ.get(i["labels"]["webex_room"])
                     del i["labels"]["webex_room"]
-                else:
+                if local_webex_room == None:
                     local_webex_room = webex_room
                 if "alertname" in i["labels"]:
                     alertname = alertname + i["labels"]["alertname"]
