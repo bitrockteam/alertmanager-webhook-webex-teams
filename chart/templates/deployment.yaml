@@ -41,10 +41,12 @@ spec:
               name: webex-receiver
               key: WEBEX_TOKEN
         - name: WEBEX_ROOM
-          valueFrom:
-            secretKeyRef:
-              name: webex-receiver
-              key: WEBEX_ROOM
+          value: {{ default "" .Values.webex.deafult_room | b64enc | quote }}
+        {{- range $room, $id := .Values.webex.rooms }}
+        - name: WEBEX_ROOM_{{ $room | upper }}
+        - value: {{ $id | b64enc | quote }}
+        {{- end }}
+
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
         terminationMessagePath: /dev/termination-log
