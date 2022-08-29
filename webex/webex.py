@@ -5,6 +5,8 @@ from werkzeug.exceptions import HTTPException
 from pythonjsonlogger import jsonlogger
 import pycurl
 import json
+import re
+
 
 webex_token = environ.get('WEBEX_TOKEN')
 webex_room = environ.get("WEBEX_ROOM_" + environ.get('DEFAULT_WEBEX_ROOM').upper())
@@ -52,16 +54,22 @@ def alert_data(data):
                     local_webex_room = webex_room
                 if "alertname" in i["labels"]:
                     alertname = alertname + i["labels"]["alertname"]
+                    del i["labels"]["alertname"]
                 if "severity" in i["labels"]:
                     severity = severity + i["labels"]["severity"]
+                    del i["labels"]["severity"]
                 if "cluster" in i["labels"]:
                     cluster = cluster + i["labels"]["cluster"]
+                    del i["labels"]["cluster"]
                 if i["startsAt"]:
                     start = start + i["startsAt"]
                 if i["endsAt"]:
                     end = end + i["endsAt"]
                 for k in i["labels"].keys():
-                    labels = '{0}\n - {1}: {2}'.format(labels, k, i['labels'][k])
+                    if re.search("^\s*https*://", i["labels"][k]):
+                        labels = '{0}\n - {1}: [{1}]({2})'.format(labels, k, i['labels'][k])
+                    else:
+                        labels = '{0}\n - {1}: {2}'.format(labels, k, i['labels'][k])
                 for k in i["annotations"].keys():
                     annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
                 alert = cluster + "\n" + alertname + "\n" + severity + "\n" + labels + "\n" + annotations + "\n" + start + "\n" + end
