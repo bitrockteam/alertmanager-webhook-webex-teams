@@ -13,6 +13,11 @@ webex_room = environ.get("WEBEX_ROOM_" + environ.get('DEFAULT_WEBEX_ROOM').upper
 loglevel = environ.get('LOGLEVEL','INFO')
 formatter = jsonlogger.JsonFormatter(
     '%(asctime) %(levelname) %(module) %(funcName) %(lineno) %(message)')
+strip = environ.get("STRIP_LABELS").split(",")
+if strip == None:
+    strip = [
+        "cloud", "endpoint", "prometheus", "service", "webex_receiver"
+    ]
 
 
 app = Flask(__name__)
@@ -39,6 +44,9 @@ def alert_data(data):
         for i in data["alerts"]:
             app.logger.debug('alert content: {0}'.format(i))
             try:
+                for ln in strip:
+                    if ln.strip() in i["labels"]:
+                        del i["labels"][ln.strip()]
                 alertname = "### alertname: "
                 severity = "severity: "
                 cluster = "## cluster: "
@@ -47,6 +55,9 @@ def alert_data(data):
                 labels = ""
                 annotations = ""
                 local_webex_room = None
+
+                if i["endAt"] == '0001-01-01T00:00:00Z':
+                    del i["endsAt"]
                 if "webex_room" in i["labels"]:
                     local_webex_room = environ.get("WEBEX_ROOM_" + i["labels"]["webex_room"].upper())
                     del i["labels"]["webex_room"]
