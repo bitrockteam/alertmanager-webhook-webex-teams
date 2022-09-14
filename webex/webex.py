@@ -58,7 +58,7 @@ def alert_data(data):
                 annotations = ""
                 local_webex_room = None
 
-                if i["endAt"] == '0001-01-01T00:00:00Z':
+                if i["endsAt"] == '0001-01-01T00:00:00Z':
                     del i["endsAt"]
                 if "webex_room" in i["labels"]:
                     local_webex_room = environ.get("WEBEX_ROOM_" + i["labels"]["webex_room"].upper())
