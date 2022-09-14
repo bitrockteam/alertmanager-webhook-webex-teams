@@ -9,7 +9,7 @@ import re
 
 
 webex_token = environ.get('WEBEX_TOKEN')
-webex_room = environ.get("WEBEX_ROOM_" + environ.get('DEFAULT_WEBEX_ROOM').upper())
+default_webex_room = environ.get("WEBEX_ROOM_" + environ.get('DEFAULT_WEBEX_ROOM').upper())
 loglevel = environ.get('LOGLEVEL','INFO')
 formatter = jsonlogger.JsonFormatter(
     '%(asctime) %(levelname) %(module) %(funcName) %(lineno) %(message)')
@@ -31,8 +31,10 @@ def alertmanager():
             post_data = json.loads(request.data)
             requested_webex_room = request.args.get("webex_room")
             if requested_webex_room != None:
-                webex_room = requested_webex_room
-            alert_data(post_data)
+                webex_room = environ.get("WEBEX_ROOM_" + requested_webex_room.upper())
+            else:
+                webex_room = default_webex_room
+            alert_data(post_data, webex_room)
     except Exception as e:
         app.logger.error("Storing alerts failed in main: %s", e)
         app.logger.exception(e)
@@ -40,7 +42,7 @@ def alertmanager():
 
     return "NOK", 200
 
-def alert_data(data):
+def alert_data(data, webex_room):
     if "alerts" in data:
         app.logger.debug('%s alerts received', len(data['alerts']))
         for i in data["alerts"]:
@@ -58,8 +60,6 @@ def alert_data(data):
                 annotations = ""
                 local_webex_room = None
 
-                if i["endsAt"] == '0001-01-01T00:00:00Z':
-                    del i["endsAt"]
                 if "webex_room" in i["labels"]:
                     local_webex_room = environ.get("WEBEX_ROOM_" + i["labels"]["webex_room"].upper())
                     del i["labels"]["webex_room"]
@@ -76,8 +76,12 @@ def alert_data(data):
                     del i["labels"]["cluster"]
                 if i["startsAt"]:
                     start = start + i["startsAt"]
-                if i["endsAt"]:
-                    end = end + i["endsAt"]
+                if "endsAt" in i:
+                    if i["endsAt"] == '0001-01-01T00:00:00Z':
+                        del i["endsAt"]
+                        end = ''
+                    else:
+                        end = end + i["endsAt"]
                 for k in i["labels"].keys():
                     if re.search("^\s*https*://", i["labels"][k]):
                         labels = '{0}\n - {1}: [{1}]({2})'.format(labels, k, i['labels'][k])
