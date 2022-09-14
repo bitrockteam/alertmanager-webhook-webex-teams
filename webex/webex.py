@@ -30,6 +30,9 @@ def alertmanager():
     try:
         if request.is_json:
             post_data = json.loads(request.data)
+            requested_webex_room = request.args.get("webex_room")
+            if requested_webex_room != None:
+                webex_room = requested_webex_room
             alert_data(post_data)
     except Exception as e:
         app.logger.error("Storing alerts failed in main: %s", e)
