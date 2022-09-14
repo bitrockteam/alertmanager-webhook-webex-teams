@@ -13,11 +13,10 @@ webex_room = environ.get("WEBEX_ROOM_" + environ.get('DEFAULT_WEBEX_ROOM').upper
 loglevel = environ.get('LOGLEVEL','INFO')
 formatter = jsonlogger.JsonFormatter(
     '%(asctime) %(levelname) %(module) %(funcName) %(lineno) %(message)')
-strip = environ.get("STRIP_LABELS").split(",")
+strip = environ.get("STRIP_LABELS")
 if strip == None:
-    strip = [
-        "cloud", "endpoint", "prometheus", "service", "webex_receiver"
-    ]
+    strip = "cloud, endpoint, prometheus, service, webex_receiver"
+strip = strip.split(",")
 
 
 app = Flask(__name__)
