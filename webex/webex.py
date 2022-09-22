@@ -6,6 +6,7 @@ from pythonjsonlogger import jsonlogger
 import pycurl
 import json
 import re
+import datetime
 
 
 webex_token = environ.get('WEBEX_TOKEN')
@@ -34,7 +35,7 @@ def alertmanager():
                 webex_room = environ.get("WEBEX_ROOM_" + requested_webex_room.upper())
             else:
                 webex_room = default_webex_room
-            alert_data(post_data, webex_room)
+            alert_data(post_data, webex_room, requested_webex_room != None)
     except Exception as e:
         app.logger.error("Storing alerts failed in main: %s", e)
         app.logger.exception(e)
@@ -42,7 +43,7 @@ def alertmanager():
 
     return "NOK", 200
 
-def alert_data(data, webex_room):
+def alert_data(data, webex_room, room_override):
     if "alerts" in data:
         app.logger.debug('%s alerts received', len(data['alerts']))
         for i in data["alerts"]:
@@ -53,18 +54,24 @@ def alert_data(data, webex_room):
                         del i["labels"][ln.strip()]
                 alertname = "### alertname: "
                 severity = "severity: "
-                cluster = "## cluster: "
-                start = "start: "
-                end = "end: "
+                cluster = ""
+                start = " - Started: at "
+                end = "Ended: at "
+                summary =""
+                description = ""
                 labels = ""
                 annotations = ""
                 local_webex_room = None
 
-                if "webex_room" in i["labels"]:
+                if "webex_room" in i["labels"] and not room_override:
                     local_webex_room = environ.get("WEBEX_ROOM_" + i["labels"]["webex_room"].upper())
                     del i["labels"]["webex_room"]
                 if local_webex_room == None:
                     local_webex_room = webex_room
+                if "summary" in i["annotations"]:
+                    summary = i["annotations"]["summary"]
+                if "description" in i["annotations"]:
+                    description = i["annotations"]["description"]
                 if "alertname" in i["labels"]:
                     alertname = alertname + i["labels"]["alertname"]
                     del i["labels"]["alertname"]
@@ -75,13 +82,15 @@ def alert_data(data, webex_room):
                     cluster = cluster + i["labels"]["cluster"]
                     del i["labels"]["cluster"]
                 if i["startsAt"]:
-                    start = start + i["startsAt"]
+                    startDt = datetime.datetime.strptime(i["startsAt"], '%Y-%m-%d %H:%M:%S.%f%Z')
+                    start = f'{start}{startDt.strftime("%H:%M:%S %Z")} on {startDt.strftime("%:%M:%S %Z")}'
                 if "endsAt" in i:
                     if i["endsAt"] == '0001-01-01T00:00:00Z':
                         del i["endsAt"]
                         end = ''
                     else:
-                        end = end + i["endsAt"]
+                        endDt = datetime.datetime.strptime(i["endsAt"], '%Y-%m-%d %H:%M:%S.%f%Z')
+                        end = f'{end}{endDt.strftime("%H:%M:%S %Z")} on {endDt.strftime("%H:%M:%S %Z")}'
                 for k in i["labels"].keys():
                     if re.search("^\s*https*://", i["labels"][k]):
                         labels = '{0}\n - {1}: [{1}]({2})'.format(labels, k, i['labels'][k])
@@ -89,7 +98,15 @@ def alert_data(data, webex_room):
                         labels = '{0}\n - {1}: {2}'.format(labels, k, i['labels'][k])
                 for k in i["annotations"].keys():
                     annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
-                alert = cluster + "\n" + alertname + "\n" + severity + "\n" + labels + "\n" + annotations + "\n" + start + "\n" + end
+                alert = f"""
+                    # {i["status"]} in {cluster}: {summary}
+                    {start}
+                    {end}
+                    ### {description}
+                    ---
+                    {labels}
+                """
+                cluster + "\n" + alertname + "\n" + severity + "\n" + labels + "\n" + annotations + "\n" + start + "\n" + end
                 app.logger.debug(alert)
                 app.logger.debug("Sending to roomId: '"+local_webex_room+"'")
                 webex = [("roomId", local_webex_room), ("markdown", str(alert))]
