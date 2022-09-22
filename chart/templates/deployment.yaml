@@ -32,7 +32,7 @@ spec:
         - name: LOGLEVEL
           value: {{ .Values.loglevel }}
         - name: PYTHONUNBUFFERED
-          value: {{ .Values.python_buffered }}
+          value: "{{ .Values.python_buffered }}"
         - name: APP
           value: "webex"
         - name: WEBEX_TOKEN

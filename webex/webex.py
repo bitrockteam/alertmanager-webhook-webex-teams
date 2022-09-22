@@ -56,7 +56,7 @@ def alert_data(data, webex_room, room_override):
                 severity = "severity: "
                 cluster = ""
                 start = " - Started: at "
-                end = "Ended: at "
+                end = " - Ended: at "
                 summary =""
                 description = ""
                 labels = ""
@@ -70,8 +70,10 @@ def alert_data(data, webex_room, room_override):
                     local_webex_room = webex_room
                 if "summary" in i["annotations"]:
                     summary = i["annotations"]["summary"]
+                    del i["annotations"]["summary"]
                 if "description" in i["annotations"]:
                     description = i["annotations"]["description"]
+                    del i["annotations"]["description"]
                 if "alertname" in i["labels"]:
                     alertname = alertname + i["labels"]["alertname"]
                     del i["labels"]["alertname"]
@@ -93,11 +95,14 @@ def alert_data(data, webex_room, room_override):
                         end = f'{end}{endDt.strftime("%H:%M:%S %Z")} on {endDt.strftime("%Y-%m-%d")}'
                 for k in i["labels"].keys():
                     if re.search("^\s*https*://", i["labels"][k]):
-                        labels = '{0}\n - {1}: [{1}]({2})'.format(labels, k, i['labels'][k])
+                        labels = '{0}\n - [{1}]({2})'.format(labels, k, i['labels'][k])
                     else:
                         labels = '{0}\n - {1}: {2}'.format(labels, k, i['labels'][k])
                 for k in i["annotations"].keys():
-                    annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
+                    if re.search("^\s*https*://", i["annotations"][k]):
+                        annotations = '{0}\n - [{1}]({2})'.format(annotations, k, i['annotations'][k])
+                    else:
+                        annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
                 alert = f"## {i['status'] } in {cluster}: {summary}\n---\n" + \
                     f"{start}\n{end}\n---\n### {description}\n" + \
                     f"{labels}\n{annotations}\n"
