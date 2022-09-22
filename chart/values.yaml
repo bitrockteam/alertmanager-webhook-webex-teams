@@ -8,7 +8,7 @@ image:
   repository: artifactory.lynqs-dev.gcp.fpprod.corp/eportal/webex-receiver
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "0.4.3"
+  tag: "0.5.6"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -57,3 +57,5 @@ loglevel: INFO
 webex:
   token: "default_token"
   default_room: "default_room"
+
+python_buffered: 0

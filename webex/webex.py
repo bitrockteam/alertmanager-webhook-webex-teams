@@ -82,15 +82,15 @@ def alert_data(data, webex_room, room_override):
                     cluster = cluster + i["labels"]["cluster"]
                     del i["labels"]["cluster"]
                 if i["startsAt"]:
-                    startDt = datetime.datetime.strptime(i["startsAt"], '%Y-%m-%d %H:%M:%S.%f%Z')
-                    start = f'{start}{startDt.strftime("%H:%M:%S %Z")} on {startDt.strftime("%:%M:%S %Z")}'
+                    startDt = datetime.datetime.strptime(i["startsAt"], '%Y-%m-%dT%H:%M:%S.%f%z')
+                    start = f'{start}{startDt.strftime("%H:%M:%S %Z")} on {startDt.strftime("%Y-%m-%d")}'
                 if "endsAt" in i:
                     if i["endsAt"] == '0001-01-01T00:00:00Z':
                         del i["endsAt"]
                         end = ''
                     else:
-                        endDt = datetime.datetime.strptime(i["endsAt"], '%Y-%m-%d %H:%M:%S.%f%Z')
-                        end = f'{end}{endDt.strftime("%H:%M:%S %Z")} on {endDt.strftime("%H:%M:%S %Z")}'
+                        endDt = datetime.datetime.strptime(i["endsAt"], '%Y-%m-%dT%H:%M:%S.%f%z')
+                        end = f'{end}{endDt.strftime("%H:%M:%S %Z")} on {endDt.strftime("%Y-%m-%d")}'
                 for k in i["labels"].keys():
                     if re.search("^\s*https*://", i["labels"][k]):
                         labels = '{0}\n - {1}: [{1}]({2})'.format(labels, k, i['labels'][k])
@@ -98,14 +98,9 @@ def alert_data(data, webex_room, room_override):
                         labels = '{0}\n - {1}: {2}'.format(labels, k, i['labels'][k])
                 for k in i["annotations"].keys():
                     annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
-                alert = f"""
-                    # {i["status"]} in {cluster}: {summary}
-                    {start}
-                    {end}
-                    ### {description}
-                    ---
-                    {labels}
-                """
+                alert = f"## {i['status'] } in {cluster}: {summary}\n---\n" + \
+                    f"{start}\n{end}\n---\n### {description}\n" + \
+                    f"{labels}\n{annotations}\n"
                 cluster + "\n" + alertname + "\n" + severity + "\n" + labels + "\n" + annotations + "\n" + start + "\n" + end
                 app.logger.debug(alert)
                 app.logger.debug("Sending to roomId: '"+local_webex_room+"'")
