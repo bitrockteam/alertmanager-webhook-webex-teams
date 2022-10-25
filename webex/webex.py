@@ -69,7 +69,8 @@ def alert_data(data, webex_room, room_override):
                 for ln in strip:
                     if ln.strip() in i["labels"]:
                         del i["labels"][ln.strip()]
-                alertname = "### alertname: "
+                alertname = ""
+                subject = ""
                 severity = "severity: "
                 cluster = ""
                 start = " - Started: at "
@@ -80,6 +81,12 @@ def alert_data(data, webex_room, room_override):
                 annotations = ""
                 local_webex_room = None
 
+                if "application" in i["labels"]:
+                    subject = i["labels"]["application"]
+                if "mountpoint" in i["labels"]:
+                    subject = i["labels"]["mountpoint"]
+                if "persistentvolumeclaim" in i["labels"]:
+                    subject = i["labels"]["persistentvolumeclaim"]
                 if "webex_room" in i["labels"] and not room_override:
                     local_webex_room = environ.get("WEBEX_ROOM_" + i["labels"]["webex_room"].upper())
                     del i["labels"]["webex_room"]
@@ -92,7 +99,7 @@ def alert_data(data, webex_room, room_override):
                     description = i["annotations"]["description"]
                     del i["annotations"]["description"]
                 if "alertname" in i["labels"]:
-                    alertname = alertname + i["labels"]["alertname"]
+                    alertname = i["labels"]["alertname"]
                     del i["labels"]["alertname"]
                 if "severity" in i["labels"]:
                     severity = severity + i["labels"]["severity"]
@@ -120,10 +127,11 @@ def alert_data(data, webex_room, room_override):
                         annotations = '{0}\n - [{1}]({2})'.format(annotations, k, i['annotations'][k])
                     else:
                         annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
-                alert = f"## {i['status'] } in {cluster}: {summary}\n---\n" + \
+
+                alert = f"## {alert_statuses[i['status']] } [{lynqs_clusters[cluster]}{ '/'+subject if len(subject) > 0 else alertname }]: {summary}\n---\n" + \
                     f"{start}\n{end}\n---\n### {description}\n" + \
                     f"{labels}\n{annotations}\n"
-                cluster + "\n" + alertname + "\n" + severity + "\n" + labels + "\n" + annotations + "\n" + start + "\n" + end
+
                 app.logger.debug(alert)
                 app.logger.debug("Sending to roomId: '"+local_webex_room+"'")
                 webex = [("roomId", local_webex_room), ("markdown", str(alert))]
