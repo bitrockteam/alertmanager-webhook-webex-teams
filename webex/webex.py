@@ -3,7 +3,8 @@ from os import environ
 from io import BytesIO
 from werkzeug.exceptions import HTTPException
 from pythonjsonlogger import jsonlogger
-import pycurl
+import requests
+from urllib import parse
 import json
 import re
 import datetime
@@ -12,6 +13,7 @@ alert_statuses = {
     'firing': '🔴',
     'resolved': '🟢'
 }
+
 lynqs_clusters = {
     'lynqs-box': 'SBX',
     'lynqs-sandbox': 'SBX',
@@ -128,24 +130,25 @@ def alert_data(data, webex_room, room_override):
                     else:
                         annotations = '{0}\n - {1}: {2}'.format(annotations, k, i['annotations'][k])
 
-                alert = f"## {alert_statuses[i['status']] } [{lynqs_clusters[cluster]}{ '/'+subject if len(subject) > 0 else alertname }]: {summary}\n---\n" + \
+                alert = f"## {alert_statuses[i['status']] }" \
+                    f" [{lynqs_clusters[cluster]}" \
+                    f"{ '/'+subject if len(subject) > 0 else '/'+alertname }]: {summary}\n---\n" + \
                     f"{start}\n{end}\n---\n### {description}\n" + \
                     f"{labels}\n{annotations}\n"
 
                 app.logger.debug(alert)
                 app.logger.debug("Sending to roomId: '"+local_webex_room+"'")
-                webex = [("roomId", local_webex_room), ("markdown", str(alert))]
-                headers = ['Authorization: Bearer ' + webex_token ]
-                buffer = BytesIO()
-                crl = pycurl.Curl()
-                crl.setopt(pycurl.URL, 'https://webexapis.com/v1/messages')
-                crl.setopt(pycurl.HTTPHEADER, headers)
-                crl.setopt(pycurl.HTTPPOST, webex)
-                crl.setopt(crl.WRITEDATA, buffer)
-                crl.perform()
-                app.logger.debug('Status: {0}'.format(crl.getinfo(crl.RESPONSE_CODE)))
-                app.logger.debug('Response: {0}'.format(buffer.getvalue()))
-                crl.close()
+                data = {
+                    "roomId": local_webex_room,
+                    "markdown": alert
+                }
+                headers = {
+                        'Authorization': 'Bearer ' + webex_token,
+                        'Content-Type': 'application/json'
+                    }
+                resp = requests.post('https://webexapis.com/v1/messages',headers=headers,data=json.dumps(data))
+                app.logger.debug('Status: {0}'.format(resp.status_code))
+                app.logger.debug('Response: {0}'.format(resp.text))
             except Exception as e:
                 app.logger.error("Storing alerts failed in sub: %s", e)
                 app.logger.exception(e)

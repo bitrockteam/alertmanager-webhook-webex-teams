@@ -1,12 +1,5 @@
-FROM python:alpine AS pycurl
-
-RUN apk add -u --no-cache libcurl libstdc++ && \
-    apk add -u --no-cache --virtual .build-deps build-base g++ libffi-dev curl-dev && \
-    pip install --no-cache-dir pycurl
-
-FROM python:alpine AS app
+FROM python:alpine
 WORKDIR /app
-COPY --from=pycurl /usr/local/lib/python3.10/site-packages/pycurl* /usr/local/lib/python3.10/site-packages/
+RUN pip install Flask  python-json-logger requests
 COPY ./webex/ ./
-RUN apk add libcurl curl && pip install Flask  python-json-logger
 CMD ["python","/app/webex.py"]
