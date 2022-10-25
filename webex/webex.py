@@ -8,6 +8,23 @@ import json
 import re
 import datetime
 
+alert_statuses = {
+    'firing': '🔴',
+    'resolved': '🟢'
+}
+lynqs_clusters = {
+    'lynqs-box': 'SBX',
+    'lynqs-sandbox': 'SBX',
+    'lynqs-sbx': 'SBX',
+    'lynqs-dev': 'DEV',
+    'lynqs-uat': 'UAT',
+    'lynqs-sit': 'SIT',
+    'lynqs-sit1': 'SIT1',
+    'lynqs-sit2': 'SIT2',
+    'lynqs-pre': 'PRE',
+    'lynqs-prd': 'PRD',
+
+}
 
 webex_token = environ.get('WEBEX_TOKEN')
 default_webex_room = environ.get("WEBEX_ROOM_" + environ.get('DEFAULT_WEBEX_ROOM').upper())
