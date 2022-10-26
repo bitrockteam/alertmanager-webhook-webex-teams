@@ -85,6 +85,8 @@ def alert_data(data, webex_room, room_override):
 
                 if "application" in i["labels"]:
                     subject = i["labels"]["application"]
+                if "deployment" in i["labels"]:
+                    subject = i["labels"]["deployment"]
                 if "mountpoint" in i["labels"]:
                     subject = i["labels"]["mountpoint"]
                 if "persistentvolumeclaim" in i["labels"]:
